@@ -122,6 +122,8 @@ helm install myproject-postgres bitnami/postgresql-ha --namespace postgres --val
 ## Crunchy (Postgres Operator)
 
 https://github.com/CrunchyData/postgres-operator
+https://access.crunchydata.com/documentation/postgres-operator/4.5.1/pgo-client/common-tasks/
+https://access.crunchydata.com/documentation/postgres-operator/4.5.1/pgo-client/
 
 ### Prerequsites
 
@@ -152,11 +154,11 @@ pgo version
 ## Testing
 
 ```bash
-# Creating cluster
+## Creating cluster
 pgo create cluster -n pgo myproject-postgres
-# Testing cluster
+## Testing cluster
 pgo test -n pgo myproject-postgres
-# Getting information on users in the cluster
+## Getting information on users in the cluster
 pgo show user -n pgo myproject-postgres
 pgo show user -n pgo myproject-postgres --show-system-accounts
 
@@ -167,10 +169,10 @@ myproject-postgres postgres    `Nu(K=9GFlV*n9QHv*]4oir@ never   ok
 myproject-postgres primaryuser Kt*b-^g<AS=]14eHEiJ,NHRa never   ok
 myproject-postgres testuser    j:>Yyd9.HoIOk6^@Y(-BYEOv never   ok
 
-# Change user password
+## Change user password
 pgo update user -n pgo myproject-postgres --username=testuser --password="secure123"
 
-# Getting postgres service
+## Getting postgres service
 kubectl -n pgo get svc
 # Result
 NAME                                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
@@ -178,14 +180,57 @@ myproject-postgres                        ClusterIP   10.96.46.177    <none>    
 myproject-postgres-backrest-shared-repo   ClusterIP   10.96.188.206   <none>        2022/TCP                     10m
 postgres-operator                         ClusterIP   10.96.128.13    <none>        8443/TCP,4171/TCP,4150/TCP   30m
 
-# Port forwarding postgres service
+## Port forwarding postgres service
 kubectl -n pgo port-forward svc/myproject-postgres 5432:5432
 
-# Add PgAdmin4
+## Add PgAdmin4
 pgo create pgadmin -n pgo myproject-postgres
-kubectl -n pgo port-forward svc/hippo-pgadmin 5050:5050
 kubectl -n pgo port-forward svc/myproject-postgres-pgadmin 5050:5050
 # You can now goto pgadmin ui on http://localhost:5050 using login testuser and password secure123
+
+## Create a backup
+pgo backup myproject-postgres
+# or pgo backup myproject-postgres --backup-opts="--type=full"
+# or pgo backup myproject-postgres --backup-opts="--type=diff"
+# or pgo backup myproject-postgres --backup-opts="--type=incr"
+
+# Result
+created Pgtask backrest-backup-myproject-postgres
+
+## Show backup
+pgo show backup myproject-postgres
+# Result
+cluster: myproject-postgres
+storage type: local
+
+stanza: db
+    status: ok
+    cipher: none
+
+    db (current)
+        wal archive min/max (12-1)
+
+        full backup: 20210109-152634F
+            timestamp start/stop: 2021-01-09 16:26:34 +0100 CET / 2021-01-09 16:26:45 +0100 CET
+            wal start/stop: 000000010000000000000003 / 000000010000000000000003
+            database size: 31.1MiB, backup size: 31.1MiB
+            repository size: 3.7MiB, repository backup size: 3.7MiB
+            backup reference list:
+
+        incr backup: 20210109-152634F_20210111-162157I
+            timestamp start/stop: 2021-01-11 17:21:57 +0100 CET / 2021-01-11 17:21:59 +0100 CET
+            wal start/stop: 00000001000000000000001D / 00000001000000000000001D
+            database size: 31.3MiB, backup size: 3.9MiB
+            repository size: 3.7MiB, repository backup size: 472.6KiB
+            backup reference list: 20210109-152634F
+
+# Delete Postgres cluster
+pgo delete cluster myproject-postgres --keep-backup
+
+# Generate cluster from backup
+pgo create cluster new-postgres --restore-from=myproject-postgres
+pgo create pgadmin -n pgo new-postgres
+
 ```
 
 ## Prometheus
