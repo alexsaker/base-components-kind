@@ -311,7 +311,7 @@ kubectl create namespace kafka
 
 ```bash
 kubectl apply -n kafka -f strimzi/strimzi-cluster-operator.yaml
-kubectl apply -n kafka -f strimzi/kafka-persistent.yaml:
+kubectl apply -n kafka -f strimzi/kafka-persistent.yaml
 kubectl apply -n kafka -f strimzi/topics.yaml
 ```
 
