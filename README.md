@@ -235,6 +235,7 @@ pgo create pgadmin -n pgo new-postgres
 
 ## Prometheus
 
+https://github.com/prometheus-operator/prometheus-operator#customresourcedefinitions
 https://github.com/bitnami/charts/tree/master/bitnami/kube-prometheus/#installing-the-chart
 
 ### Prerequisites
@@ -294,10 +295,27 @@ To access Alertmanager from outside the cluster execute the following commands:
 ### Production
 
 ```bash
-helm install myproject-postgres bitnami/kube-prometheus --namespace prometheus --values prometheus/values-production.yaml
+helm install myproject-prometheus bitnami/kube-prometheus --namespace prometheus --values prometheus/values-production.yaml
 ```
 
-## Pormetheus exporters
+### Alternative with the community kube-prometheus-stack (BEST)
+
+```bash
+helm install myproject-prometheus-stack prometheus-community/kube-prometheus-stack -n prometheus
+# Result
+NAME: myproject-prometheus-stack
+LAST DEPLOYED: Wed Jan 20 10:28:52 2021
+NAMESPACE: prometheus
+STATUS: deployed
+REVISION: 1
+NOTES:
+kube-prometheus-stack has been installed. Check its status by running:
+  kubectl --namespace prometheus get pods -l "release=myproject-prometheus-stack"
+
+Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
+```
+
+## Prometheus exporters
 
 ### Prerequisites
 
@@ -312,15 +330,20 @@ helm repo update
 ### Redis
 
 ```bash
-helm show values prometheus-community/prometheus-redis-exporter  > redis/values.redis-exporter.yaml
-helm install myproject-redis-exporter prometheus-community/prometheus-redis-exporter -n redis --values redis/values.redis-exporter.yaml
+helm show values prometheus-community/prometheus-redis-exporter  > redis-exporter/values.yaml
+helm install myproject-redis-exporter prometheus-community/prometheus-redis-exporter -n redis --values redis-exporter/values.yaml
 ```
 
 You can then check out exported metrics.
 
 ```bash
+# Prometheus UI
+kubectl port-forward -n prometheus svc/myproject-prometheus-stack-prometheus 9090:9090
+# Exported metrics
 kubectl port-forward -n redis svc/myproject-redis-exporter-prometheus-redis-exporter 9121:9121
 curl  http://localhost:9121/metrics
+# Grafana
+kubectl port-forward svc/myproject-prometheus-stack-grafana -n prometheus 3000:80
 ```
 
 ## Strimzi
