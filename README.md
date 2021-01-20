@@ -297,6 +297,32 @@ To access Alertmanager from outside the cluster execute the following commands:
 helm install myproject-postgres bitnami/kube-prometheus --namespace prometheus --values prometheus/values-production.yaml
 ```
 
+## Pormetheus exporters
+
+### Prerequisites
+
+https://github.com/prometheus-community/helm-charts/tree/main/charts
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add stable https://charts.helm.sh/stable
+helm repo update
+```
+
+### Redis
+
+```bash
+helm show values prometheus-community/prometheus-redis-exporter  > redis/values.redis-exporter.yaml
+helm install myproject-redis-exporter prometheus-community/prometheus-redis-exporter -n redis --values redis/values.redis-exporter.yaml
+```
+
+You can then check out exported metrics.
+
+```bash
+kubectl port-forward -n redis svc/myproject-redis-exporter-prometheus-redis-exporter 9121:9121
+curl  http://localhost:9121/metrics
+```
+
 ## Strimzi
 
 https://strimzi.io/quickstarts/
