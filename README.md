@@ -1,9 +1,9 @@
-# MyProject
+# Base Components
 
 ## Create kind cluster
 
 ```bash
-kind create cluster --name myproject --config kind/config.yaml
+kind create cluster --name mycluster --config kind/config.yaml
 ```
 
 ## Add bitnami repo
@@ -27,11 +27,11 @@ kubectl create namespace redis
 ### Testing
 
 ```bash
-helm install myproject-redis bitnami/redis-cluster --namespace redis --values redis/values.yaml
+helm install base-redis bitnami/redis-cluster --namespace redis --values redis/values.yaml
 ```
 
 ```txt
-NAME: myproject-redis
+NAME: base-redis
 LAST DEPLOYED: Fri Jan  8 11:21:25 2021
 NAMESPACE: redis
 STATUS: deployed
@@ -42,24 +42,24 @@ NOTES:
 
 
 To get your password run:
-    export REDIS_PASSWORD=$(kubectl get secret --namespace redis myproject-redis-redis-cluster -o jsonpath="{.data.redis-password}" | base64 --decode)
+    export REDIS_PASSWORD=$(kubectl get secret --namespace redis base-redis-redis-cluster -o jsonpath="{.data.redis-password}" | base64 --decode)
 
 You have deployed a Redis Cluster accessible only from within you Kubernetes Cluster.INFO: The Job to create the cluster will be created.To connect to your Redis cluster:
 
 1. Run a Redis pod that you can use as a client:
-kubectl run --namespace redis myproject-redis-redis-cluster-client --rm --tty -i --restart='Never' \
+kubectl run --namespace redis base-redis-redis-cluster-client --rm --tty -i --restart='Never' \
  --env REDIS_PASSWORD=$REDIS_PASSWORD \
 --image docker.io/bitnami/redis-cluster:6.0.9-debian-10-r36 -- bash
 
 2. Connect using the Redis CLI:
 
-redis-cli -c -h myproject-redis-redis-cluster -a $REDIS_PASSWORD
+redis-cli -c -h base-redis-redis-cluster -a $REDIS_PASSWORD
 ```
 
 ### Production
 
 ```bash
-helm install myproject-redis bitnami/redis-cluster --values values-production.yaml --namespace redis --values redis/values-prduction.yaml
+helm install base-redis bitnami/redis-cluster --values values-production.yaml --namespace redis --values redis/values-prduction.yaml
 ```
 
 ## Postgres
@@ -75,11 +75,11 @@ kubectl create namespace postgres
 ### Testing
 
 ```bash
-helm install myproject-postgres bitnami/postgresql-ha --namespace postgres --values postgres/values.yaml
+helm install base-postgres bitnami/postgresql-ha --namespace postgres --values postgres/values.yaml
 ```
 
 ```txt
-NAME: myproject-postgres
+NAME: base-postgres
 LAST DEPLOYED: Fri Jan  8 11:23:37 2021
 NAMESPACE: postgres
 STATUS: deployed
@@ -90,33 +90,33 @@ NOTES:
 
 PostgreSQL can be accessed through Pgpool via port 5432 on the following DNS name from within your cluster:
 
-    myproject-postgres-postgresql-ha-pgpool.postgres.svc.cluster.local
+    base-postgres-postgresql-ha-pgpool.postgres.svc.cluster.local
 
 Pgpool acts as a load balancer for PostgreSQL and forward read/write connections to the primary node while read-only connections are forwarded to standby nodes.
 
 To get the password for "postgres" run:
 
-    export POSTGRES_PASSWORD=$(kubectl get secret --namespace postgres myproject-postgres-postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
+    export POSTGRES_PASSWORD=$(kubectl get secret --namespace postgres base-postgres-postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
 
 To get the password for "repmgr" run:
 
-    export REPMGR_PASSWORD=$(kubectl get secret --namespace postgres myproject-postgres-postgresql-ha-postgresql -o jsonpath="{.data.repmgr-password}" | base64 --decode)
+    export REPMGR_PASSWORD=$(kubectl get secret --namespace postgres base-postgres-postgresql-ha-postgresql -o jsonpath="{.data.repmgr-password}" | base64 --decode)
 
 To connect to your database run the following command:
 
-    kubectl run myproject-postgres-postgresql-ha-client --rm --tty -i --restart='Never' --namespace postgres --image docker.io/bitnami/postgresql-repmgr:11.10.0-debian-10-r55 --env="PGPASSWORD=$POSTGRES_PASSWORD"  \
-        --command -- psql -h myproject-postgres-postgresql-ha-pgpool -p 5432 -U postgres -d postgres
+    kubectl run base-postgres-postgresql-ha-client --rm --tty -i --restart='Never' --namespace postgres --image docker.io/bitnami/postgresql-repmgr:11.10.0-debian-10-r55 --env="PGPASSWORD=$POSTGRES_PASSWORD"  \
+        --command -- psql -h base-postgres-postgresql-ha-pgpool -p 5432 -U postgres -d postgres
 
 To connect to your database from outside the cluster execute the following commands:
 
-    kubectl port-forward --namespace postgres svc/myproject-postgres-postgresql-ha-pgpool 5432:5432 &
+    kubectl port-forward --namespace postgres svc/base-postgres-postgresql-ha-pgpool 5432:5432 &
     psql -h 127.0.0.1 -p 5432 -U postgres -d postgres
 ```
 
 ### Production
 
 ```bash
-helm install myproject-postgres bitnami/postgresql-ha --namespace postgres --values postgres/values-production.yaml
+helm install base-postgres bitnami/postgresql-ha --namespace postgres --values postgres/values-production.yaml
 ```
 
 ## Crunchy (Postgres Operator)
@@ -155,52 +155,52 @@ pgo version
 
 ```bash
 ## Creating cluster
-pgo create cluster -n pgo myproject-postgres
+pgo create cluster -n pgo base-postgres
 ## Testing cluster
-pgo test -n pgo myproject-postgres
+pgo test -n pgo base-postgres
 ## Getting information on users in the cluster
-pgo show user -n pgo myproject-postgres
-pgo show user -n pgo myproject-postgres --show-system-accounts
+pgo show user -n pgo base-postgres
+pgo show user -n pgo base-postgres --show-system-accounts
 
 CLUSTER            USERNAME    PASSWORD                 EXPIRES STATUS ERROR
 ------------------ ----------- ------------------------ ------- ------ -----
-myproject-postgres crunchyadm                           never   ok
-myproject-postgres postgres    `Nu(K=9GFlV*n9QHv*]4oir@ never   ok
-myproject-postgres primaryuser Kt*b-^g<AS=]14eHEiJ,NHRa never   ok
-myproject-postgres testuser    j:>Yyd9.HoIOk6^@Y(-BYEOv never   ok
+base-postgres crunchyadm                           never   ok
+base-postgres postgres    `Nu(K=9GFlV*n9QHv*]4oir@ never   ok
+base-postgres primaryuser Kt*b-^g<AS=]14eHEiJ,NHRa never   ok
+base-postgres testuser    j:>Yyd9.HoIOk6^@Y(-BYEOv never   ok
 
 ## Change user password
-pgo update user -n pgo myproject-postgres --username=testuser --password="secure123"
+pgo update user -n pgo base-postgres --username=testuser --password="secure123"
 
 ## Getting postgres service
 kubectl -n pgo get svc
 # Result
 NAME                                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
-myproject-postgres                        ClusterIP   10.96.46.177    <none>        2022/TCP,5432/TCP            10m
-myproject-postgres-backrest-shared-repo   ClusterIP   10.96.188.206   <none>        2022/TCP                     10m
+base-postgres                        ClusterIP   10.96.46.177    <none>        2022/TCP,5432/TCP            10m
+base-postgres-backrest-shared-repo   ClusterIP   10.96.188.206   <none>        2022/TCP                     10m
 postgres-operator                         ClusterIP   10.96.128.13    <none>        8443/TCP,4171/TCP,4150/TCP   30m
 
 ## Port forwarding postgres service
-kubectl -n pgo port-forward svc/myproject-postgres 5432:5432
+kubectl -n pgo port-forward svc/base-postgres 5432:5432
 
 ## Add PgAdmin4
-pgo create pgadmin -n pgo myproject-postgres
-kubectl -n pgo port-forward svc/myproject-postgres-pgadmin 5050:5050
+pgo create pgadmin -n pgo base-postgres
+kubectl -n pgo port-forward svc/base-postgres-pgadmin 5050:5050
 # You can now goto pgadmin ui on http://localhost:5050 using login testuser and password secure123
 
 ## Create a backup
-pgo backup myproject-postgres
-# or pgo backup myproject-postgres --backup-opts="--type=full"
-# or pgo backup myproject-postgres --backup-opts="--type=diff"
-# or pgo backup myproject-postgres --backup-opts="--type=incr"
+pgo backup base-postgres
+# or pgo backup base-postgres --backup-opts="--type=full"
+# or pgo backup base-postgres --backup-opts="--type=diff"
+# or pgo backup base-postgres --backup-opts="--type=incr"
 
 # Result
-created Pgtask backrest-backup-myproject-postgres
+created Pgtask backrest-backup-base-postgres
 
 ## Show backup
-pgo show backup myproject-postgres
+pgo show backup base-postgres
 # Result
-cluster: myproject-postgres
+cluster: base-postgres
 storage type: local
 
 stanza: db
@@ -225,10 +225,10 @@ stanza: db
             backup reference list: 20210109-152634F
 
 # Delete Postgres cluster
-pgo delete cluster myproject-postgres --keep-backup
+pgo delete cluster base-postgres --keep-backup
 
 # Generate cluster from backup
-pgo create cluster new-postgres --restore-from=myproject-postgres
+pgo create cluster new-postgres --restore-from=base-postgres
 pgo create pgadmin -n pgo new-postgres
 
 ```
@@ -247,11 +247,11 @@ kubectl create namespace prometheus
 ### Testing
 
 ```bash
-helm install myproject-postgres bitnami/kube-prometheus --namespace prometheus --values prometheus/values.yaml
+helm install base-postgres bitnami/kube-prometheus --namespace prometheus --values prometheus/values.yaml
 ```
 
 ```txt
-NAME: myproject-postgres
+NAME: base-postgres
 LAST DEPLOYED: Fri Jan  8 11:25:06 2021
 NAMESPACE: prometheus
 STATUS: deployed
@@ -262,55 +262,57 @@ NOTES:
 
 Watch the Prometheus Operator Deployment status using the command:
 
-    kubectl get deploy -w --namespace prometheus -l app.kubernetes.io/name=kube-prometheus-operator,app.kubernetes.io/instance=myproject-postgres
+    kubectl get deploy -w --namespace prometheus -l app.kubernetes.io/name=kube-prometheus-operator,app.kubernetes.io/instance=base-postgres
 
 Watch the Prometheus StatefulSet status using the command:
 
-    kubectl get sts -w --namespace prometheus -l app.kubernetes.io/name=kube-prometheus-prometheus,app.kubernetes.io/instance=myproject-postgres
+    kubectl get sts -w --namespace prometheus -l app.kubernetes.io/name=kube-prometheus-prometheus,app.kubernetes.io/instance=base-postgres
 
 Prometheus can be accessed via port "9090" on the following DNS name from within your cluster:
 
-    myproject-postgres-kube-prom-prometheus.prometheus.svc.cluster.local
+    base-postgres-kube-prom-prometheus.prometheus.svc.cluster.local
 
 To access Prometheus from outside the cluster execute the following commands:
 
     echo "Prometheus URL: http://127.0.0.1:9090/"
-    kubectl port-forward --namespace prometheus svc/myproject-postgres-kube-prom-prometheus 9090:9090
+    kubectl port-forward --namespace prometheus svc/base-postgres-kube-prom-prometheus 9090:9090
 
 Watch the Alertmanager StatefulSet status using the command:
 
-    kubectl get sts -w --namespace prometheus -l app.kubernetes.io/name=kube-prometheus-alertmanager,app.kubernetes.io/instance=myproject-postgres
+    kubectl get sts -w --namespace prometheus -l app.kubernetes.io/name=kube-prometheus-alertmanager,app.kubernetes.io/instance=base-postgres
 
 Alertmanager can be accessed via port "9093" on the following DNS name from within your cluster:
 
-    myproject-postgres-kube-prom-alertmanager.prometheus.svc.cluster.local
+    base-postgres-kube-prom-alertmanager.prometheus.svc.cluster.local
 
 To access Alertmanager from outside the cluster execute the following commands:
 
     echo "Alertmanager URL: http://127.0.0.1:9093/"
-    kubectl port-forward --namespace prometheus svc/myproject-postgres-kube-prom-alertmanager 9093:9093
+    kubectl port-forward --namespace prometheus svc/base-postgres-kube-prom-alertmanager 9093:9093
 
 ```
 
 ### Production
 
 ```bash
-helm install myproject-prometheus bitnami/kube-prometheus --namespace prometheus --values prometheus/values-production.yaml
+helm install base-prometheus bitnami/kube-prometheus --namespace prometheus --values prometheus/values-production.yaml
 ```
 
 ### Alternative with the community kube-prometheus-stack (BEST)
 
 ```bash
-helm install myproject-prometheus-stack prometheus-community/kube-prometheus-stack -n prometheus
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install base-prometheus-stack prometheus-community/kube-prometheus-stack -n prometheus
 # Result
-NAME: myproject-prometheus-stack
+NAME: base-prometheus-stack
 LAST DEPLOYED: Wed Jan 20 10:28:52 2021
 NAMESPACE: prometheus
 STATUS: deployed
 REVISION: 1
 NOTES:
 kube-prometheus-stack has been installed. Check its status by running:
-  kubectl --namespace prometheus get pods -l "release=myproject-prometheus-stack"
+  kubectl --namespace prometheus get pods -l "release=base-prometheus-stack"
 
 Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
 ```
@@ -327,23 +329,47 @@ helm repo add stable https://charts.helm.sh/stable
 helm repo update
 ```
 
-### Redis
-
+### Postgres
 ```bash
-helm show values prometheus-community/prometheus-redis-exporter  > redis-exporter/values.yaml
-helm install myproject-redis-exporter prometheus-community/prometheus-redis-exporter -n redis --values redis-exporter/values.yaml
+helm show values prometheus-community/prometheus-postgres-exporter  > postgres-exporter/values.yaml
+helm install base-postgres-exporter prometheus-community/prometheus-postgres-exporter -n postgres --values postgres-exporter/values.yaml
 ```
 
 You can then check out exported metrics.
 
 ```bash
 # Prometheus UI
-kubectl port-forward -n prometheus svc/myproject-prometheus-stack-prometheus 9090:9090
+kubectl port-forward -n prometheus svc/base-prometheus-stack-prometheus 9090:9090
 # Exported metrics
-kubectl port-forward -n redis svc/myproject-redis-exporter-prometheus-redis-exporter 9121:9121
+kubectl port-forward -n postgres svc/base-postgres-exporter-prometheus-postgres-exporter 9090:80
+curl  http://localhost:9090/metrics
+# Grafana
+kubectl port-forward svc/base-prometheus-stack-grafana -n prometheus 3000:80
+Login: admin
+Password: prom-operator
+```
+### Crunchy Data
+https://info.crunchydata.com/blog/setup-postgresql-monitoring-in-kubernetes
+
+### Redis
+
+```bash
+helm show values prometheus-community/prometheus-redis-exporter  > redis-exporter/values.yaml
+helm install base-redis-exporter prometheus-community/prometheus-redis-exporter -n redis --values redis-exporter/values.yaml
+```
+
+You can then check out exported metrics.
+
+```bash
+# Prometheus UI
+kubectl port-forward -n prometheus svc/base-prometheus-stack-prometheus 9090:9090
+# Exported metrics
+kubectl port-forward -n redis svc/base-redis-exporter-prometheus-redis-exporter 9121:9121
 curl  http://localhost:9121/metrics
 # Grafana
-kubectl port-forward svc/myproject-prometheus-stack-grafana -n prometheus 3000:80
+kubectl port-forward svc/base-prometheus-stack-grafana -n prometheus 3000:80
+Login: admin
+Password: prom-operator
 ```
 
 ## Strimzi
@@ -375,11 +401,11 @@ kubectl create namespace kafka
 ### Testing
 
 ```bash
-helm install myproject-kafka bitnami/kafka --namespace kafka --values kafka/values.yaml
+helm install base-kafka bitnami/kafka --namespace kafka --values kafka/values.yaml
 ```
 
 ```txt
-AME: myproject-kafka
+AME: base-kafka
 LAST DEPLOYED: Fri Jan  8 12:17:23 2021
 NAMESPACE: kafka
 STATUS: deployed
@@ -390,27 +416,27 @@ NOTES:
 
 Kafka can be accessed by consumers via port 9092 on the following DNS name from within your cluster:
 
-    myproject-kafka.kafka.svc.cluster.local
+    base-kafka.kafka.svc.cluster.local
 
 Each Kafka broker can be accessed by producers via port 9092 on the following DNS name(s) from within your cluster:
 
-    myproject-kafka-0.myproject-kafka-headless.kafka.svc.cluster.local:9092
+    base-kafka-0.base-kafka-headless.kafka.svc.cluster.local:9092
 
 To create a pod that you can use as a Kafka client run the following commands:
 
-    kubectl run myproject-kafka-client --restart='Never' --image docker.io/bitnami/kafka:2.7.0-debian-10-r1 --namespace kafka --command -- sleep infinity
-    kubectl exec --tty -i myproject-kafka-client --namespace kafka -- bash
+    kubectl run base-kafka-client --restart='Never' --image docker.io/bitnami/kafka:2.7.0-debian-10-r1 --namespace kafka --command -- sleep infinity
+    kubectl exec --tty -i base-kafka-client --namespace kafka -- bash
 
     PRODUCER:
         kafka-console-producer.sh \
 
-            --broker-list myproject-kafka-0.myproject-kafka-headless.kafka.svc.cluster.local:9092 \
+            --broker-list base-kafka-0.base-kafka-headless.kafka.svc.cluster.local:9092 \
             --topic test
 
     CONSUMER:
         kafka-console-consumer.sh \
 
-            --bootstrap-server myproject-kafka.kafka.svc.cluster.local:9092 \
+            --bootstrap-server base-kafka.kafka.svc.cluster.local:9092 \
             --topic test \
             --from-beginning
 ```
@@ -418,13 +444,13 @@ To create a pod that you can use as a Kafka client run the following commands:
 ### Production
 
 ```bash
-helm install myproject-kafka bitnami/kafka --namespace kafka --values kafka/values-production.yaml
+helm install base-kafka bitnami/kafka --namespace kafka --values kafka/values-production.yaml
 ```
 
 Output:
 
 ```txt
-NAME: myproject-kafka
+NAME: base-kafka
 LAST DEPLOYED: Fri Jan  8 12:37:29 2021
 NAMESPACE: kafka
 STATUS: deployed
@@ -435,13 +461,13 @@ NOTES:
 
 Kafka can be accessed by consumers via port 9092 on the following DNS name from within your cluster:
 
-    myproject-kafka.kafka.svc.cluster.local
+    base-kafka.kafka.svc.cluster.local
 
 Each Kafka broker can be accessed by producers via port 9092 on the following DNS name(s) from within your cluster:
 
-    myproject-kafka-0.myproject-kafka-headless.kafka.svc.cluster.local:9092
-    myproject-kafka-1.myproject-kafka-headless.kafka.svc.cluster.local:9092
-    myproject-kafka-2.myproject-kafka-headless.kafka.svc.cluster.local:9092
+    base-kafka-0.base-kafka-headless.kafka.svc.cluster.local:9092
+    base-kafka-1.base-kafka-headless.kafka.svc.cluster.local:9092
+    base-kafka-2.base-kafka-headless.kafka.svc.cluster.local:9092
 
 You need to configure your Kafka client to access using SASL authentication. To do so, you need to create the 'kafka_jaas.conf' and 'client.properties' configuration files by executing these commands:
 
@@ -451,7 +477,7 @@ cat > kafka_jaas.conf <<EOF
 KafkaClient {
 org.apache.kafka.common.security.scram.ScramLoginModule required
 username="user"
-password="$(kubectl get secret myproject-kafka-jaas -n kafka -o jsonpath='{.data.client-passwords}' | base64 --decode | cut -d , -f 1)";
+password="$(kubectl get secret base-kafka-jaas -n kafka -o jsonpath='{.data.client-passwords}' | base64 --decode | cut -d , -f 1)";
 };
 EOF
 
@@ -464,22 +490,22 @@ EOF
 
 To create a pod that you can use as a Kafka client run the following commands:
 
-    kubectl run myproject-kafka-client --restart='Never' --image docker.io/bitnami/kafka:2.7.0-debian-10-r1 --namespace kafka --command -- sleep infinity
-    kubectl cp --namespace kafka /path/to/client.properties myproject-kafka-client:/tmp/client.properties
-    kubectl cp --namespace kafka /path/to/kafka_jaas.conf myproject-kafka-client:/tmp/kafka_jaas.conf
-    kubectl exec --tty -i myproject-kafka-client --namespace kafka -- bash
+    kubectl run base-kafka-client --restart='Never' --image docker.io/bitnami/kafka:2.7.0-debian-10-r1 --namespace kafka --command -- sleep infinity
+    kubectl cp --namespace kafka /path/to/client.properties base-kafka-client:/tmp/client.properties
+    kubectl cp --namespace kafka /path/to/kafka_jaas.conf base-kafka-client:/tmp/kafka_jaas.conf
+    kubectl exec --tty -i base-kafka-client --namespace kafka -- bash
     export KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/kafka_jaas.conf"
 
     PRODUCER:
         kafka-console-producer.sh \
             --producer.config /tmp/client.properties \
-            --broker-list myproject-kafka-0.myproject-kafka-headless.kafka.svc.cluster.local:9092,myproject-kafka-1.myproject-kafka-headless.kafka.svc.cluster.local:9092,myproject-kafka-2.myproject-kafka-headless.kafka.svc.cluster.local:9092 \
+            --broker-list base-kafka-0.base-kafka-headless.kafka.svc.cluster.local:9092,base-kafka-1.base-kafka-headless.kafka.svc.cluster.local:9092,base-kafka-2.base-kafka-headless.kafka.svc.cluster.local:9092 \
             --topic test
 
     CONSUMER:
         kafka-console-consumer.sh \
             --consumer.config /tmp/client.properties \
-            --bootstrap-server myproject-kafka.kafka.svc.cluster.local:9092 \
+            --bootstrap-server base-kafka.kafka.svc.cluster.local:9092 \
             --topic test \
             --from-beginning
 ```
@@ -489,7 +515,7 @@ cat > kafka/kafka_jaas.conf <<EOF
 KafkaClient {
 org.apache.kafka.common.security.scram.ScramLoginModule required
 username="user"
-password="$(kubectl get secret myproject-kafka-jaas -n kafka -o jsonpath='{.data.client-passwords}' | base64 --decode | cut -d , -f 1)";
+password="$(kubectl get secret base-kafka-jaas -n kafka -o jsonpath='{.data.client-passwords}' | base64 --decode | cut -d , -f 1)";
 };
 EOF
 
@@ -501,23 +527,23 @@ sasl.mechanism=SCRAM-SHA-256
 EOF
 
 
-kubectl run myproject-kafka-client --restart='Never' --image docker.io/bitnami/kafka:2.7.0-debian-10-r1 --namespace kafka --command -- sleep infinity
-kubectl cp --namespace kafka kafka/client.properties myproject-kafka-client:/tmp/client.properties
-kubectl cp --namespace kafka kafka/kafka_jaas.conf myproject-kafka-client:/tmp/kafka_jaas.conf
-kubectl exec --tty -i myproject-kafka-client --namespace kafka -- bash
+kubectl run base-kafka-client --restart='Never' --image docker.io/bitnami/kafka:2.7.0-debian-10-r1 --namespace kafka --command -- sleep infinity
+kubectl cp --namespace kafka kafka/client.properties base-kafka-client:/tmp/client.properties
+kubectl cp --namespace kafka kafka/kafka_jaas.conf base-kafka-client:/tmp/kafka_jaas.conf
+kubectl exec --tty -i base-kafka-client --namespace kafka -- bash
 export KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/kafka_jaas.conf"
 # CREATE TOPIC
-kafka-topics.sh --create --topic test --zookeeper myproject-kafka-zookeeper.kafka.svc.cluster.local:2181 --partitions 3 --replication-factor 3
+kafka-topics.sh --create --topic test --zookeeper base-kafka-zookeeper.kafka.svc.cluster.local:2181 --partitions 3 --replication-factor 3
 # PRODUCER
 kafka-console-producer.sh \
     --producer.config /tmp/client.properties \
-    --broker-list myproject-kafka-0.myproject-kafka-headless.kafka.svc.cluster.local:9092,myproject-kafka-1.myproject-kafka-headless.kafka.svc.cluster.local:9092,myproject-kafka-2.myproject-kafka-headless.kafka.svc.cluster.local:9092 \
+    --broker-list base-kafka-0.base-kafka-headless.kafka.svc.cluster.local:9092,base-kafka-1.base-kafka-headless.kafka.svc.cluster.local:9092,base-kafka-2.base-kafka-headless.kafka.svc.cluster.local:9092 \
     --topic test
 
 # CONSUMER:
 kafka-console-consumer.sh \
     --consumer.config /tmp/client.properties \
-    --bootstrap-server myproject-kafka.kafka.svc.cluster.local:9092 \
+    --bootstrap-server base-kafka.kafka.svc.cluster.local:9092 \
     --topic test \
     --from-beginning
 ```
@@ -570,10 +596,10 @@ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 helm search repo ingress-nginx/ingress-nginx
 kubectl create namespace nginx-ingress
-helm install  myproject-nginx-ingress -n nginx-ingress ingress-nginx/ingress-nginx --version 3.19.0
+helm install  base-nginx-ingress -n nginx-ingress ingress-nginx/ingress-nginx --version 3.19.0
 
 # Result
-NAME: myproject-nginx-ingress
+NAME: base-nginx-ingress
 LAST DEPLOYED: Mon Jan 11 11:28:59 2021
 NAMESPACE: nginx-ingress
 STATUS: deployed
@@ -582,7 +608,7 @@ TEST SUITE: None
 NOTES:
 The ingress-nginx controller has been installed.
 It may take a few minutes for the LoadBalancer IP to be available.
-You can watch the status by running 'kubectl --namespace nginx-ingress get services -o wide -w myproject-nginx-ingress-ingress-nginx-controller'
+You can watch the status by running 'kubectl --namespace nginx-ingress get services -o wide -w base-nginx-ingress-ingress-nginx-controller'
 
 An example Ingress that makes use of the controller:
 

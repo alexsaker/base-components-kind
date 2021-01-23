@@ -11,7 +11,7 @@ serviceMonitor:
   telemetryPath: /metrics
   # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
   labels:
-    release: myproject-prometheus-stack
+    release: base-prometheus-stack
   # labels:
   # Set timeout for scrape
   # timeout: 10s
